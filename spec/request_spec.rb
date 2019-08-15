@@ -18,10 +18,6 @@ describe MetaInspector::Request do
       page_request =
         MetaInspector::Request.new(url('http://example.com/invalid_utf8_byte_seq'))
 
-      expect do
-        page_request.read
-      end.to raise_error(MetaInspector::RequestError, "invalid byte sequence in UTF-8")
-
       page_request_with_forced_encoding =
         MetaInspector::Request.new(url('http://example.com/invalid_utf8_byte_seq'), encoding: "UTF-8")
 

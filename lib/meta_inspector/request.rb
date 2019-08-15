@@ -32,11 +32,18 @@ module MetaInspector
 
     def read
       return unless response
-      body = response.body
-      body = body.encode!(@encoding, @encoding, :invalid => :replace) if @encoding
-      body.tr("\000", '')
-    rescue ArgumentError => e
-      raise MetaInspector::RequestError.new(e)
+      retry_count = 0
+      begin
+        body = response.body
+        body = body.tr("\000", '')
+        body
+      rescue  Encoding::UndefinedConversionError
+        return response.body.encode('UTF-16be', invalid: :replace, replace: '?').encode('UTF-8')
+      rescue ArgumentError
+        return response.body.encode('UTF-8', invalid: :replace, undef: :replace, replace: '?')
+      rescue Encoding::CompatibilityError, Encoding::ConverterNotFoundError
+        response.body.force_encoding('UTF-8')
+      end
     end
 
     def content_type
@@ -55,6 +62,7 @@ module MetaInspector
     private
 
     def fetch
+      retry_count = 0
       Timeout::timeout(fatal_timeout) do
         @faraday_options.merge!(:url => url)
 
@@ -86,6 +94,13 @@ module MetaInspector
         @url.url = response.env.url.to_s
 
         response
+      end
+    rescue NoMethodError => e
+      retry_count += 1
+      raise  MetaInspector::RequestError.new(e) if retry_count > 1
+      if e.message =~ /undefined method `request_uri' for #<URI::Generic/
+        @url.url = @url.url.gsub(/.*:/, 'https:')
+        retry
       end
     rescue Timeout::Error => e
       raise MetaInspector::TimeoutError.new(e)
