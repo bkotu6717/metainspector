@@ -120,12 +120,6 @@ describe MetaInspector do
       expect(page.best_description).to eq("the twitter description")
     end
 
-    it "should return the secondary description if no meta tag is present" do
-      page = MetaInspector.new('http://theonion-no-description.com')
-
-      expect(page.best_description).to eq("SAN FRANCISCO—In a move expected to revolutionize the mobile device industry, Apple launched its fastest and most powerful iPhone to date Tuesday, an innovative new model that can only be seen by the company's hippest and most dedicated customers. This is secondary text picked up because of a missing meta description.")
-    end
-
     it "should return nil by default" do
       page = MetaInspector.new('http://example.com/empty')
 
