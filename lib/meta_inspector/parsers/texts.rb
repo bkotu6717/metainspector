@@ -79,8 +79,7 @@ module MetaInspector
         candidates = [
           meta['description'],
           meta['og:description'],
-          meta['twitter:description'],
-          secondary_description
+          meta['twitter:description']
         ]
         candidates.find { |x| !x.to_s.empty? }
       end
